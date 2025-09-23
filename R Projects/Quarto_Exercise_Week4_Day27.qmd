@@ -1,0 +1,66 @@
+---
+title: "Crypto Risk Report"
+author: "VGL"
+date: "1 Jan 1001"
+format: html
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Day 27: Automated BTC Risk Report — single cell
+
+# 1) Libraries
+library(tidyquant)
+library(dplyr)
+library(ggplot2)
+library(PerformanceAnalytics)
+library(knitr)
+
+# 2) Parameters
+symbol <- "BTC-USD"
+start  <- "2023-01-01"
+end    <- Sys.Date()
+
+# 3) Data (prices & returns)
+btc_tbl <- tq_get(symbol, from = start, to = end) |>
+  arrange(date) |>
+  transmute(date, price = adjusted) |>
+  mutate(ret = log(price / lag(price))) |>
+  tidyr::drop_na()
+
+ret_xts <- xts::xts(btc_tbl$ret, order.by = btc_tbl$date)
+
+# 4) Price Chart
+price_plot <- ggplot(btc_tbl, aes(x = date, y = price)) +
+  geom_line(color = "steelblue") +
+  labs(title = paste("Price of", symbol),
+       x = "Date", y = "Price (USD)") +
+  theme_minimal()
+
+# 5) Return Distribution
+dist_plot <- ggplot(btc_tbl, aes(x = ret)) +
+  geom_histogram(bins = 50, fill = "darkred", alpha = 0.7) +
+  labs(title = "Daily Log Return Distribution",
+       x = "Log Return", y = "Frequency") +
+  theme_minimal()
+
+# 6) Risk Metrics (VaR & ES) — PerformanceAnalytics uses tail prob p
+risk_table <- data.frame(
+  Measure = c("VaR(95%)", "ES(95%)", "VaR(99%)", "ES(99%)"),
+  Value = c(
+    as.numeric(VaR(ret_xts, p = 0.05, method = "historical")),
+    as.numeric(ES (ret_xts, p = 0.05, method = "historical")),
+    as.numeric(VaR(ret_xts, p = 0.01, method = "historical")),
+    as.numeric(ES (ret_xts, p = 0.01, method = "historical"))
+  )
+)
+
+# 7) Output
+print(price_plot)
+print(dist_plot)
+kable(risk_table, caption = "Risk Metrics for BTC-USD")
+```
