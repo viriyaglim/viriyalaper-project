@@ -1,6 +1,6 @@
 ####################################################################################
 #                                   PROJECT TITLE
-#                               HASBROUCK PRICE IMPACT
+#                    ANALYSIS OF HASBROUCK PRICE ON MARKET IMPACT 
 ####################################################################################
 
 import pandas as pd
