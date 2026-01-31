@@ -7,7 +7,7 @@
 
 from Util import *
 import HuobiService
-import threading #导入threading包
+import threading 
 import time
 from time import sleep
 amount="0.005"
